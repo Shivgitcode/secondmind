@@ -1,0 +1,41 @@
+{
+  "name": "secondmind",
+  "version": "0.1.0",
+  "description": "Shared memory for AI coding sessions. Stop re-explaining what you already figured out.",
+  "type": "module",
+  "bin": {
+    "secondmind": "dist/src/cli/index.js"
+  },
+  "files": [
+    "dist/src",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc && chmod +x dist/src/cli/index.js",
+    "test": "npm run build && node --test dist/test/*.test.js",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "ai",
+    "memory",
+    "context",
+    "coding-agent",
+    "claude",
+    "cursor"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.124.0",
+    "@modelcontextprotocol/server": "^2.0.0",
+    "better-sqlite3": "^13.0.3"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^24.13.4",
+    "typescript": "^5.9.3"
+  }
+}
