@@ -1,6 +1,6 @@
 # secondmind
 
-[![npm version](https://img.shields.io/npm/v/secondmind.svg)](https://www.npmjs.com/package/secondmind)
+[![npm version](https://img.shields.io/npm/v/@shiv_2608/secondmind.svg)](https://www.npmjs.com/package/@shiv_2608/secondmind)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg)](https://nodejs.org/)
 [![Tests](https://img.shields.io/badge/tests-42%20passing-brightgreen.svg)](https://github.com/shivgitcode/secondmind)
@@ -23,10 +23,10 @@ Run with `npx` (no install needed) or install globally:
 
 ```bash
 # Option A: Run directly with npx
-npx secondmind init
+npx @shiv_2608/secondmind init
 
 # Option B: Install globally
-npm install -g secondmind
+npm install -g @shiv_2608/secondmind
 secondmind init
 ```
 
@@ -38,9 +38,9 @@ Pick the snippet for your editor:
 
 #### Claude Code
 ```bash
+claude mcp add secondmind -- npx -y @shiv_2608/secondmind mcp
+# or if installed globally:
 claude mcp add secondmind -- secondmind mcp
-# or with npx:
-claude mcp add secondmind -- npx -y secondmind mcp
 ```
 
 #### Cursor (`~/.cursor/mcp.json` or Project Settings > MCP)
@@ -49,7 +49,7 @@ claude mcp add secondmind -- npx -y secondmind mcp
   "mcpServers": {
     "secondmind": {
       "command": "npx",
-      "args": ["-y", "secondmind", "mcp"]
+      "args": ["-y", "@shiv_2608/secondmind", "mcp"]
     }
   }
 }
@@ -61,7 +61,7 @@ claude mcp add secondmind -- npx -y secondmind mcp
   "mcpServers": {
     "secondmind": {
       "command": "npx",
-      "args": ["-y", "secondmind", "mcp"]
+      "args": ["-y", "@shiv_2608/secondmind", "mcp"]
     }
   }
 }
@@ -74,7 +74,7 @@ Add to your extension's MCP configuration:
   "mcpServers": {
     "secondmind": {
       "command": "npx",
-      "args": ["-y", "secondmind", "mcp"]
+      "args": ["-y", "@shiv_2608/secondmind", "mcp"]
     }
   }
 }

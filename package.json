@@ -1,5 +1,5 @@
 {
-  "name": "secondmind",
+  "name": "@shiv_2608/secondmind",
   "version": "0.1.0",
   "description": "Shared memory for AI coding sessions. Stop re-explaining what you already figured out.",
   "type": "module",
