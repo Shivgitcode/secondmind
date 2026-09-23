@@ -1,4 +1,5 @@
 import { type Config, type ProviderName, loadConfig } from '../config.js';
+import { redact } from '../core/redact.js';
 import type { ExtractedNote } from '../core/types.js';
 import { type SamplingContext, agentSampler } from './agent.js';
 import { anthropicSampler } from './anthropic.js';
@@ -56,7 +57,8 @@ export async function extract(transcript: string, options: ExtractOptions): Prom
   const config = options.config ?? loadConfig();
   const samplers = buildSamplers(config, options.agent);
   const system = SYSTEM_PROMPT;
-  const user = userPrompt(transcript, options.project);
+  // Secrets are stripped before the transcript reaches any model, local or not.
+  const user = userPrompt(redact(transcript), options.project);
   const unavailable: string[] = [];
 
   for (const sampler of samplers) {

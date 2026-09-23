@@ -14,7 +14,8 @@ interface ChatResponse {
  * Gemini's compatibility layer, OpenRouter, Ollama, vLLM, LM Studio.
  *
  * A key is only required when talking to a remote host — local servers such as
- * Ollama accept requests without one.
+ * Ollama accept requests without one. Remote hosts are only used when the
+ * config allows it.
  */
 export function openaiSampler(config: Config): Sampler | null {
   const baseUrl = (config.baseUrl ?? DEFAULT_BASE_URL).replace(/\/$/, '');
@@ -22,7 +23,7 @@ export function openaiSampler(config: Config): Sampler | null {
   const apiKey = process.env[config.apiKeyEnv ?? 'OPENAI_API_KEY'];
 
   const isLocal = /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])/.test(baseUrl);
-  if (!apiKey && !isLocal) return null;
+  if (!isLocal && (!apiKey || !config.allowRemote)) return null;
 
   return {
     name: 'openai',

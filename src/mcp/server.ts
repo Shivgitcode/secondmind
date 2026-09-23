@@ -7,23 +7,7 @@ import { detectProject } from '../core/project.js';
 import { NOTE_TYPES, type NoteType } from '../core/types.js';
 import { type SamplingContext, extract } from '../extract/index.js';
 import { formatNotes } from '../cli/render.js';
-
-/**
- * Handed to the client at connect time and shown to its model. Without this an
- * agent sees three tools it has no reason to reach for: asked "what do you know
- * about X" it describes the tools instead of searching them.
- */
-const INSTRUCTIONS = `secondmind is this user's memory of their past coding sessions, across every repository they work in.
-
-Call search_context at the START of any debugging, investigation, or "why does X happen" task, and before asking the user to explain background. The answer is often already there from a session in a different repo. Do this without being asked.
-
-Call remember_context as soon as you confirm something worth knowing months from now:
-- a discovery about how the system actually behaves
-- an approach that did NOT work (this saves the most time later)
-- a decision and the reason for it
-- an unresolved question and the obvious next step
-
-Save the finding, not the conversation, and write it so it stands alone — "it was the serializer" is useless later; name the service. Always fill in keywords (other words someone might search for, including synonyms for the concept) and related_projects (other services affected). A note saved without keywords may never be found again.`;
+import { instructions } from './guidance.js';
 
 const ok = (text: string) => ({ content: [{ type: 'text' as const, text }] });
 const fail = (text: string) => ({ isError: true, content: [{ type: 'text' as const, text }] });
@@ -32,8 +16,15 @@ const message = (error: unknown) => (error instanceof Error ? error.message : St
 
 export function buildServer(store: Store = Store.open()): McpServer {
   const server = new McpServer(
-    { name: 'secondmind', version: '0.1.0' },
-    { capabilities: { tools: {} }, enforceStrictCapabilities: true, instructions: INSTRUCTIONS },
+    { name: 'secondmind', version: '0.2.0' },
+    {
+      capabilities: { tools: {} },
+      enforceStrictCapabilities: true,
+      // Handed to the client at connect time and shown to its model. Without this
+      // an agent sees three tools it has no reason to reach for. Read on every
+      // connect, so `secondmind auto off` applies from the next session.
+      instructions: instructions(loadConfig().autoSave !== false),
+    },
   );
   const here = () => detectProject().name;
 

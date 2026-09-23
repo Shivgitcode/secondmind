@@ -15,6 +15,8 @@ const DEFAULT_MODEL = 'claude-opus-5';
  * when the client is built.
  */
 export function anthropicSampler(config: Config): Sampler | null {
+  if (!config.allowRemote) return null;
+
   let client: Anthropic;
   try {
     client = new Anthropic();

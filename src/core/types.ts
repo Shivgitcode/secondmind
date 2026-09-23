@@ -13,6 +13,8 @@ export type NoteSource = 'saved' | 'extracted';
 
 export interface Note {
   id: number;
+  /** Stable across machines — what export, import and sync match notes by. */
+  uid: string;
   content: string;
   type: NoteType;
   project: string;

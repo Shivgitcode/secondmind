@@ -3,7 +3,7 @@
 [![npm version](https://img.shields.io/npm/v/@shiv_2608/secondmind.svg)](https://www.npmjs.com/package/@shiv_2608/secondmind)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg)](https://nodejs.org/)
-[![Tests](https://img.shields.io/badge/tests-42%20passing-brightgreen.svg)](https://github.com/shivgitcode/secondmind)
+[![Tests](https://img.shields.io/badge/tests-63%20passing-brightgreen.svg)](https://github.com/shivgitcode/secondmind)
 
 **Stop explaining your last debugging session to your next one.**
 
@@ -128,6 +128,22 @@ You don't need to change how you work. secondmind gives your assistant instructi
 - At the **start** of any debugging task or investigation, your assistant automatically calls `search_context` to see if you solved something similar in another repo.
 - Whenever a finding, dead-end, or decision is **confirmed**, your assistant automatically calls `remember_context` to store it with relevant keywords and affected services.
 
+In Claude Code, `secondmind init` also installs a small skill
+(`~/.claude/skills/secondmind/SKILL.md`) so Claude recognises those moments even
+more reliably. Other agents get the same guidance through MCP.
+
+**Rather it only saved when you ask?**
+
+```bash
+secondmind auto off   # saves only when you say "remember this"
+secondmind auto on    # back to hands-free
+secondmind auto       # which is it right now?
+```
+
+One switch covers every agent: it changes what the MCP server tells each tool,
+and adds or removes the Claude Code skill. It applies from your next session.
+Searching past notes stays automatic either way.
+
 ### 2. What to say to your assistant (Prompts)
 You can also steer your assistant explicitly using plain English in your chat:
 
@@ -152,6 +168,10 @@ You can also steer your assistant explicitly using plain English in your chat:
 | `secondmind compact <file>` | Read a whole session transcript and save what mattered |
 | `secondmind forget <id>` | Delete one note |
 | `secondmind stats` | What's stored, and which model reads transcripts |
+| `secondmind auto [on\|off]` | Whether your assistant saves findings without being asked |
+| `secondmind export [file]` | Every note as JSON, or markdown with `.md` / `-f md` |
+| `secondmind import <file>` | Merge an export in — safe to run more than once |
+| `secondmind sync <folder>` | Two-way sync through a folder you already sync |
 
 In `browse`: type to filter, `↑↓` to move, `⏎` to open a note, `d` then `y` to
 delete it, `esc` to quit.
@@ -185,20 +205,30 @@ secondmind asks *it* to do the reading. A Cursor user gets whatever model Cursor
 is running, a Gemini CLI user gets Gemini. No API key, no configuration, no
 second bill. This is tried first, always.
 
-**2. A provider you configure.** If your agent can't do that, set any one of:
+**2. A local model.** If your agent can't do that, point secondmind at any
+OpenAI-compatible server on your machine:
 
 ```bash
-export ANTHROPIC_API_KEY=sk-ant-...                  # Claude
-
-export OPENAI_API_KEY=sk-...                         # OpenAI
-export SECONDMIND_MODEL=gpt-4o-mini
-
 export SECONDMIND_BASE_URL=http://localhost:11434/v1 # Ollama, LM Studio, vLLM
 export SECONDMIND_MODEL=llama3.2                     # (local needs no key)
+```
 
+**3. A cloud provider — only if you name one.** Having `ANTHROPIC_API_KEY` or
+`OPENAI_API_KEY` in your environment is not enough; a transcript only goes to a
+cloud provider when you pick it explicitly:
+
+```bash
+export SECONDMIND_PROVIDER=anthropic                 # Claude
+export ANTHROPIC_API_KEY=sk-ant-...
+
+export SECONDMIND_PROVIDER=openai                    # OpenAI
+export OPENAI_API_KEY=sk-...
+export SECONDMIND_MODEL=gpt-4o-mini
+
+export SECONDMIND_PROVIDER=openai                    # OpenRouter, Gemini, any
 export SECONDMIND_BASE_URL=https://openrouter.ai/api/v1
-export OPENAI_API_KEY=sk-or-...                      # OpenRouter, Gemini, any
-export SECONDMIND_MODEL=...                          # OpenAI-compatible endpoint
+export OPENAI_API_KEY=sk-or-...
+export SECONDMIND_MODEL=...
 ```
 
 Anything speaking the OpenAI chat-completions shape works. To pin the order, or
@@ -208,7 +238,9 @@ to skip a provider, write `~/.secondmind/config.json`:
 { "providers": ["agent", "openai"], "model": "llama3.2", "baseUrl": "http://localhost:11434/v1" }
 ```
 
-`secondmind stats` shows which order is in effect.
+Listing `providers` there (or in `SECONDMIND_PROVIDER`) is what allows cloud
+hosts. `secondmind stats` shows the order in effect and whether cloud providers
+are allowed.
 
 ### Doing it automatically
 
@@ -219,7 +251,7 @@ on every session end. In Claude Code, add to `~/.claude/settings.json`:
 {
   "hooks": {
     "SessionEnd": [
-      { "hooks": [{ "type": "command", "command": "secondmind compact \"$(jq -r .transcript_path)\"" }] }
+      { "hooks": [{ "type": "command", "command": "secondmind compact \"$(jq -r .transcript_path)\"; secondmind sync ~/Sync/secondmind" }] }
     ]
   }
 }
@@ -235,9 +267,40 @@ Everything lives in one SQLite file on your machine:
 ~/.secondmind/memory.db
 ```
 
-No account, no telemetry, nothing uploaded. The single exception is reading a
-transcript, which sends it to whichever model you picked above — and when that's
-your coding agent's own model, it never leaves the tool you were already using.
+No account, no telemetry, nothing uploaded. The file is created readable by you
+only (`0600`). The single exception is reading a transcript, which sends it to
+whichever model you picked above — your coding agent's own model or a local one
+by default, and a cloud provider only if you named one.
+
+Things that look like credentials — API keys, tokens, private keys, passwords in
+connection strings — are replaced with `[redacted]` before a transcript is sent
+to any model and before any note is saved. It's pattern matching, so treat it as
+a safety net rather than a guarantee.
+
+The database carries a schema version, so upgrading secondmind migrates your
+notes in place, and an older secondmind refuses to open a newer database rather
+than damaging it.
+
+### Backups and more than one machine
+
+```bash
+secondmind export notes.json        # everything, importable
+secondmind export notes.md          # everything, for reading
+secondmind import notes.json        # merge it back in; duplicates are skipped
+```
+
+To share notes between your laptop and your desktop, point both at a folder you
+already sync — Syncthing, Dropbox, iCloud Drive, or a private git repo:
+
+```bash
+secondmind sync ~/Sync/secondmind
+```
+
+Each machine writes only its own file (`<hostname>.json`) and reads everyone
+else's, so there's nothing to conflict. Deleting a note on one machine deletes
+it on the others at their next sync. Run it whenever you like, or add it to the
+session-end hook below. Nothing about this involves a server: the folder is
+the sync.
 
 To read your notes: `secondmind browse`. To delete one: `secondmind forget 12`.
 To delete everything: `rm ~/.secondmind/memory.db`.

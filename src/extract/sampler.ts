@@ -29,10 +29,11 @@ export class NoProviderError extends Error {
     super(
       `No way to read the transcript. Tried: ${tried.join(', ')}.`
       + (failures.length > 0 ? `\n  ${failures.join('\n  ')}` : '') + '\n\n'
-      + 'Either use a coding agent that supports MCP sampling, or set one of:\n'
-      + '  ANTHROPIC_API_KEY=...                      (Claude)\n'
-      + '  OPENAI_API_KEY=... SECONDMIND_MODEL=...    (OpenAI)\n'
-      + '  SECONDMIND_BASE_URL=... SECONDMIND_MODEL=...  (Gemini, OpenRouter, Ollama, local)\n\n'
+      + 'Either use a coding agent that supports MCP sampling, or run a local model:\n'
+      + '  SECONDMIND_BASE_URL=http://localhost:11434/v1 SECONDMIND_MODEL=llama3.2   (Ollama, LM Studio, vLLM)\n\n'
+      + 'Cloud providers are off by default. To send transcripts to one, name it:\n'
+      + '  SECONDMIND_PROVIDER=anthropic ANTHROPIC_API_KEY=...                       (Claude)\n'
+      + '  SECONDMIND_PROVIDER=openai OPENAI_API_KEY=... SECONDMIND_MODEL=...        (OpenAI, OpenRouter, Gemini)\n\n'
       + 'Saving and searching notes never need any of this.',
     );
     this.name = 'NoProviderError';

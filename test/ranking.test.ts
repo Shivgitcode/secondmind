@@ -7,7 +7,7 @@ const NOW = Date.parse('2026-09-10T00:00:00.000Z');
 
 function note(overrides: Partial<RankInput> = {}): RankInput {
   return {
-    id: 1, content: 'x', type: 'discovery', project: 'payments-service', sessionId: null,
+    id: 1, uid: 'u1', content: 'x', type: 'discovery', project: 'payments-service', sessionId: null,
     keywords: '', files: '', related: '', importance: 2, source: 'extracted',
     createdAt: new Date(NOW).toISOString(), bm25: -1,
     ...overrides,

@@ -18,6 +18,10 @@ ${bold('secondmind')} — shared memory for your AI coding sessions
   secondmind compact <file|->         Read a session transcript and save what mattered
   secondmind forget <id>              Delete one note
   secondmind stats                    What's stored, and which model reads transcripts
+  secondmind auto [on|off]            Whether your assistant saves findings without being asked
+  secondmind export [file]            Every note as JSON (or markdown, with .md or -f md)
+  secondmind import <file>            Merge an export in; safe to run more than once
+  secondmind sync <folder>            Two-way sync through Syncthing, Dropbox, iCloud or git
   secondmind mcp                      Run the server your AI tool talks to
 
 Options
@@ -28,6 +32,7 @@ Options
   -s, --session <id>     Only notes from one session
   -k, --keywords <list>  Other words you might search for later, comma separated
   -r, --related <list>   Other projects this affects, comma separated
+  -f, --format <fmt>     For export: json (default) or md
 
 Everything is stored on your machine, in ${DB_PATH}
 `.trim();
@@ -43,6 +48,7 @@ async function main(): Promise<void> {
       session: { type: 'string', short: 's' },
       keywords: { type: 'string', short: 'k' },
       related: { type: 'string', short: 'r' },
+      format: { type: 'string', short: 'f' },
       help: { type: 'boolean', short: 'h' },
     },
   });
@@ -68,7 +74,13 @@ async function main(): Promise<void> {
     keywords: values.keywords,
     related: values.related,
     all: values.all,
+    format: values.format,
   };
+
+  if (command === 'auto') {
+    commands.auto(rest);
+    return;
+  }
 
   if (command === 'init') {
     Store.open().close();
@@ -86,6 +98,9 @@ async function main(): Promise<void> {
       case 'compact': await commands.compact(store, rest[0] ?? '-', options); return;
       case 'forget': commands.forget(store, rest[0]); return;
       case 'stats': commands.stats(store); return;
+      case 'export': commands.exportCommand(store, rest[0], options); return;
+      case 'import': commands.importCommand(store, rest[0]); return;
+      case 'sync': commands.sync(store, rest[0]); return;
       default: throw new Error(`Unknown command "${command}". Run secondmind --help.`);
     }
   } finally {

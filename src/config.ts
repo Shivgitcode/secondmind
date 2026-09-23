@@ -1,6 +1,6 @@
-import { readFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 
 export const HOME = process.env['SECONDMIND_HOME'] ?? join(homedir(), '.secondmind');
 export const DB_PATH = join(HOME, 'memory.db');
@@ -24,16 +24,36 @@ export interface Config {
   baseUrl?: string;
   /** Which environment variable holds the key. Defaults per provider. */
   apiKeyEnv?: string;
+  /**
+   * Whether a transcript may be sent to a remote host. Off unless you name the
+   * providers yourself, so an API key that happens to be in your environment
+   * never ships a session off the machine by surprise.
+   */
+  allowRemote?: boolean;
+  /**
+   * Whether your assistant saves findings as it works, without being asked.
+   * On by default; `secondmind auto off` turns it off.
+   */
+  autoSave?: boolean;
 }
 
-const DEFAULTS: Config = { providers: ['agent', 'anthropic', 'openai'] };
+/** Your agent's own model, then a local OpenAI-compatible server if you set one. */
+const DEFAULTS: Config = { providers: ['agent', 'openai'], allowRemote: false, autoSave: true };
 
-function fromFile(): Partial<Config> {
+function fromFile(path = CONFIG_PATH): Partial<Config> {
   try {
-    return JSON.parse(readFileSync(CONFIG_PATH, 'utf8')) as Partial<Config>;
+    return JSON.parse(readFileSync(path, 'utf8')) as Partial<Config>;
   } catch {
     return {}; // no config file is the normal case
   }
+}
+
+/** Change some settings in the config file, leaving everything else as it was. */
+export function saveConfig(changes: Partial<Config>, path = CONFIG_PATH): void {
+  mkdirSync(dirname(path), { recursive: true, mode: 0o700 });
+  const tmp = `${path}.${process.pid}.tmp`;
+  writeFileSync(tmp, `${JSON.stringify({ ...fromFile(path), ...changes }, null, 2)}\n`, { mode: 0o600 });
+  renameSync(tmp, path);
 }
 
 function fromEnv(): Partial<Config> {
@@ -49,5 +69,10 @@ function fromEnv(): Partial<Config> {
 
 /** File overrides defaults, environment overrides file. */
 export function loadConfig(): Config {
-  return { ...DEFAULTS, ...fromFile(), ...fromEnv() };
+  const file = fromFile();
+  const env = fromEnv();
+  const merged: Config = { ...DEFAULTS, ...file, ...env };
+  // Naming the providers is the opt-in to the cloud; defaults never are.
+  merged.allowRemote = file.allowRemote ?? Boolean(file.providers ?? env.providers);
+  return merged;
 }

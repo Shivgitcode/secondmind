@@ -3,7 +3,9 @@ import { detectProject } from '../core/project.js';
 import type { Store } from '../core/store.js';
 import { type NoteType, isNoteType } from '../core/types.js';
 import { readTranscript } from '../core/transcript.js';
+import { readExport, syncFolder, toMarkdown, writePrivate } from '../core/sync.js';
 import { extract } from '../extract/index.js';
+import { autoSaveEnabled, installSkill, setAutoSave } from './auto.js';
 import { browse } from './browse.js';
 import { bold, dim, formatNotes } from './render.js';
 
@@ -15,6 +17,7 @@ export interface CommandOptions {
   keywords?: string | undefined;
   related?: string | undefined;
   all?: boolean | undefined;
+  format?: string | undefined;
 }
 
 const asList = (value: string | undefined): string[] =>
@@ -40,16 +43,79 @@ and save new findings as it goes.
 
 ${bold('Reading whole transcripts')} is optional. secondmind will ask your coding
 agent's own model to do it, so it usually needs no key at all. If your agent
-does not support that, set one of:
+does not support that, point it at a local model:
 
-  ANTHROPIC_API_KEY=...                            Claude
-  OPENAI_API_KEY=...      SECONDMIND_MODEL=...     OpenAI
-  SECONDMIND_BASE_URL=... SECONDMIND_MODEL=...     Gemini, OpenRouter, Ollama, local
+  SECONDMIND_BASE_URL=http://localhost:11434/v1 SECONDMIND_MODEL=llama3.2
+
+Cloud providers are off until you name one, so a key in your environment never
+sends a transcript anywhere by surprise:
+
+  SECONDMIND_PROVIDER=anthropic ANTHROPIC_API_KEY=...                  Claude
+  SECONDMIND_PROVIDER=openai    OPENAI_API_KEY=... SECONDMIND_MODEL=...  OpenAI, OpenRouter, Gemini
 
 Saving and searching notes never need any of this.
 Provider order can be pinned in ${CONFIG_PATH}.
 
 You are in project "${detectProject().name}". Try:  secondmind remember "something worth knowing"`);
+
+  if (autoSaveEnabled()) {
+    const installed = installSkill();
+    console.log(`
+${bold('Automatic saving is on')} — your assistant saves findings as it works, without being asked.
+${installed ? 'Installed the Claude Code skill that teaches it when. ' : ''}Turn it off with: secondmind auto off`);
+  }
+}
+
+export function auto(words: string[]): void {
+  const [choice] = words;
+  if (choice !== 'on' && choice !== 'off') {
+    console.log(`Automatic saving is ${bold(autoSaveEnabled() ? 'on' : 'off')}. Change it with: secondmind auto on|off`);
+    return;
+  }
+
+  const state = setAutoSave(choice === 'on');
+  const skill = {
+    installed: `Claude Code skill installed at ${state.path}`,
+    removed: 'Claude Code skill removed.',
+    'no claude code': 'Claude Code not found, so no skill was installed — other agents follow the setting anyway.',
+  }[state.skill];
+
+  console.log(state.autoSave
+    ? `Automatic saving is ${bold('on')}. Your assistant will save findings as it works.`
+    : `Automatic saving is ${bold('off')}. Your assistant will only save when you ask it to.`);
+  console.log(`${skill}\n${dim('Takes effect in your next session.')}`);
+}
+
+export function exportCommand(store: Store, file: string | undefined, options: CommandOptions): void {
+  const format = options.format ?? (file?.endsWith('.md') ? 'md' : 'json');
+  if (format !== 'json' && format !== 'md') throw new Error(`Unknown format "${format}". Use json or md.`);
+
+  const data = store.exportAll();
+  const text = format === 'md' ? toMarkdown(data) : `${JSON.stringify(data, null, 2)}\n`;
+  if (!file || file === '-') {
+    process.stdout.write(text);
+    return;
+  }
+  writePrivate(file, text);
+  console.log(`Exported ${plural(data.notes.length, 'note')} to ${file}`);
+}
+
+export function importCommand(store: Store, file: string | undefined): void {
+  if (!file) throw new Error('Import what? Try: secondmind import notes.json');
+  const { added, skipped, deleted } = store.importAll(readExport(file));
+  console.log(`Imported ${plural(added, 'note')}`
+    + dim(` (${skipped} already here${deleted > 0 ? `, ${deleted} deleted elsewhere` : ''})`));
+}
+
+export function sync(store: Store, dir: string | undefined): void {
+  const folder = dir ?? process.env['SECONDMIND_SYNC_DIR'];
+  if (!folder) throw new Error('Sync with which folder? Try: secondmind sync ~/Sync/secondmind');
+
+  const result = syncFolder(store, folder);
+  const from = result.from.length > 0 ? `from ${result.from.join(', ')}` : 'no other machines yet';
+  console.log(`Synced: ${plural(result.added, 'new note')}${result.deleted > 0 ? `, ${result.deleted} deleted` : ''} ${dim(`(${from})`)}`);
+  console.log(dim(`This machine's notes: ${result.file}`));
+  if (result.unreadable.length > 0) console.log(dim(`Skipped unreadable: ${result.unreadable.join(', ')}`));
 }
 
 export function remember(store: Store, words: string[], options: CommandOptions): void {
@@ -122,7 +188,9 @@ export function stats(store: Store): void {
   const config = loadConfig();
   console.log(`${plural(notes, 'note')} across ${plural(projects, 'project')}
 ${DB_PATH}
-provider order: ${config.providers.join(' → ')}`);
+provider order: ${config.providers.join(' → ')}
+cloud providers: ${config.allowRemote ? 'allowed' : 'off (local and your agent only)'}
+automatic saving: ${config.autoSave !== false ? 'on' : 'off'}`);
 }
 
 export function browseCommand(store: Store, options: CommandOptions): Promise<void> {

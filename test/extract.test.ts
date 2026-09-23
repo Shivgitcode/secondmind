@@ -61,10 +61,21 @@ test('the agent is asked before any provider that needs a key', () => {
 });
 
 test('a client without sampling falls through to a configured provider', () => {
-  const config: Config = { providers: ['agent', 'openai'], apiKeyEnv: 'TEST_KEY_FOR_SECONDMIND', model: 'm' };
+  const config: Config = { providers: ['agent', 'openai'], apiKeyEnv: 'TEST_KEY_FOR_SECONDMIND', model: 'm', allowRemote: true };
   process.env['TEST_KEY_FOR_SECONDMIND'] = 'sk-test';
   try {
     assert.equal(resolveSampler(config, { mcpReq: {} }).name, 'openai');
+  } finally {
+    delete process.env['TEST_KEY_FOR_SECONDMIND'];
+  }
+});
+
+test('a key in the environment is not enough to send a transcript to the cloud', () => {
+  const config: Config = { providers: ['agent', 'anthropic', 'openai'], apiKeyEnv: 'TEST_KEY_FOR_SECONDMIND' };
+  process.env['TEST_KEY_FOR_SECONDMIND'] = 'sk-test';
+  try {
+    assert.throws(() => resolveSampler(config, { mcpReq: {} }), NoProviderError);
+    assert.equal(resolveSampler({ ...config, allowRemote: true }, { mcpReq: {} }).name, 'anthropic');
   } finally {
     delete process.env['TEST_KEY_FOR_SECONDMIND'];
   }
