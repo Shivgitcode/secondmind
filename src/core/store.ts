@@ -79,6 +79,9 @@ function migrate(db: Database.Database): void {
     }
     for (let version = current; version < SCHEMA_VERSION; version++) db.exec(MIGRATIONS[version]!);
     if (current !== SCHEMA_VERSION) db.pragma(`user_version = ${SCHEMA_VERSION}`);
+    // A v0.1 process (an old cached `npx` copy, say) can still insert rows without
+    // a uid after the upgrade. Give them one, or they could never sync or be forgotten.
+    db.exec('UPDATE notes SET uid = lower(hex(randomblob(16))) WHERE uid IS NULL');
   }).immediate();
 }
 

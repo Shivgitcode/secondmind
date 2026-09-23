@@ -96,3 +96,22 @@ test('a database from a newer version is refused, not damaged', () => {
   db.close();
   assert.throws(() => Store.open(path), /newer secondmind/);
 });
+
+test('notes written by an old binary after the upgrade still get an id', () => {
+  const path = freshPath();
+  const store = Store.open(path);
+  store.close();
+
+  // What v0.1.0 does: insert without knowing the uid column exists.
+  const db = new Database(path);
+  db.prepare(`INSERT INTO notes (content, type, project, created_at) VALUES ('from an old copy', 'discovery', 'p', ?)`)
+    .run(new Date().toISOString());
+  db.close();
+
+  const reopened = Store.open(path);
+  const [note] = reopened.list();
+  assert.match(note?.uid ?? '', /^[0-9a-f]{32}$/);
+  assert.equal(reopened.exportAll().notes.length, 1);
+  assert.ok(reopened.forget(note!.id));
+  reopened.close();
+});
