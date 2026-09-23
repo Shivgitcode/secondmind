@@ -1,5 +1,10 @@
 # secondmind
 
+[![npm version](https://img.shields.io/npm/v/secondmind.svg)](https://www.npmjs.com/package/secondmind)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js](https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg)](https://nodejs.org/)
+[![Tests](https://img.shields.io/badge/tests-42%20passing-brightgreen.svg)](https://github.com/shivgitcode/secondmind)
+
 **Stop explaining your last debugging session to your next one.**
 
 You spend an hour with an AI assistant working out why the payment webhook fails.
@@ -14,20 +19,70 @@ a different project, even in a different AI tool.
 
 ## Quick start
 
+Run with `npx` (no install needed) or install globally:
+
 ```bash
+# Option A: Run directly with npx
+npx secondmind init
+
+# Option B: Install globally
 npm install -g secondmind
 secondmind init
 ```
 
-`init` prints one line to connect your AI tool. For Claude Code that's:
+`init` configures the database and shows how to connect your tool.
 
+### Connect your AI tool
+
+Pick the snippet for your editor:
+
+#### Claude Code
 ```bash
 claude mcp add secondmind -- secondmind mcp
+# or with npx:
+claude mcp add secondmind -- npx -y secondmind mcp
+```
+
+#### Cursor (`~/.cursor/mcp.json` or Project Settings > MCP)
+```json
+{
+  "mcpServers": {
+    "secondmind": {
+      "command": "npx",
+      "args": ["-y", "secondmind", "mcp"]
+    }
+  }
+}
+```
+
+#### Windsurf (`~/.codeium/windsurf/mcp_config.json`)
+```json
+{
+  "mcpServers": {
+    "secondmind": {
+      "command": "npx",
+      "args": ["-y", "secondmind", "mcp"]
+    }
+  }
+}
+```
+
+#### VS Code (Cline / Roo Code / Continue)
+Add to your extension's MCP configuration:
+```json
+{
+  "mcpServers": {
+    "secondmind": {
+      "command": "npx",
+      "args": ["-y", "secondmind", "mcp"]
+    }
+  }
+}
 ```
 
 That's it. No account, no API key, nothing to run. Now work normally.
 
-Want to try it without any AI tool involved?
+Want to try it from your terminal without any AI tool involved?
 
 ```bash
 secondmind remember "the orders API rejects a webhook if the order is already paid"
@@ -61,6 +116,27 @@ quantity, so validation always fails
 ```
 
 You didn't explain anything. That's the whole product.
+
+---
+
+## How to use it with your AI assistant
+
+When secondmind is connected via MCP, your assistant sees three tools: `search_context`, `remember_context`, and `save_session`.
+
+### 1. Hands-free (Automatic)
+You don't need to change how you work. secondmind gives your assistant instructions at connect time:
+- At the **start** of any debugging task or investigation, your assistant automatically calls `search_context` to see if you solved something similar in another repo.
+- Whenever a finding, dead-end, or decision is **confirmed**, your assistant automatically calls `remember_context` to store it with relevant keywords and affected services.
+
+### 2. What to say to your assistant (Prompts)
+You can also steer your assistant explicitly using plain English in your chat:
+
+| What you want | What to say in chat | What happens |
+|---|---|---|
+| **Save an insight** | *"Remember this for next time: the orders API rejects a webhook if the order is already paid."* | Calls `remember_context`, automatically generating search keywords and tagging affected services. |
+| **Search past knowledge** | *"Check secondmind: why did payment retries fail last week?"* | Calls `search_context` across all your repos, ranking by relevance and recency. |
+| **Cross-repo context** | *"What do we know about auth token refresh from our other services?"* | Calls `search_context` with cross-project boosting. |
+| **Wrap up a session** | *"Wrap up this session and save what we learned to secondmind."* | Calls `save_session` to read the conversation, extract 3–8 key discoveries/dead-ends, and store them. |
 
 ---
 

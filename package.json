@@ -28,6 +28,14 @@
     "cursor"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shivgitcode/secondmind.git"
+  },
+  "homepage": "https://github.com/shivgitcode/secondmind#readme",
+  "bugs": {
+    "url": "https://github.com/shivgitcode/secondmind/issues"
+  },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.124.0",
     "@modelcontextprotocol/server": "^2.0.0",
