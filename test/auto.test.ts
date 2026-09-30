@@ -48,3 +48,10 @@ test('every agent is told the same thing the skill says', () => {
   // Searching stays automatic either way — reading your own notes costs nothing.
   assert.match(instructions(false), /Call search_context at the START/);
 });
+
+test('agents are told to widen their searches, whether or not auto-save is on', () => {
+  for (const text of [instructions(true), instructions(false), skill()]) {
+    assert.match(text, /matches words, not meaning/);
+    assert.match(text, /synonyms/);
+  }
+});

@@ -41,7 +41,11 @@ export function buildServer(store: Store = Store.open()): McpServer {
       inputSchema: fromJsonSchema<{ query?: string; project?: string; limit?: number }>({
         type: 'object',
         properties: {
-          query: { type: 'string', description: 'What you are working on right now, in plain words.' },
+          query: {
+            type: 'string',
+            description: 'What you are working on, plus synonyms and the likely cause — search matches words, not meaning. '
+              + 'E.g. "duplicate deliveries idempotent retry dedupe webhook", not just "duplicate deliveries".',
+          },
           project: { type: 'string', description: 'Current project. Defaults to the current git repository.' },
           limit: { type: 'integer', description: 'Max notes to return (default 6).' },
         },

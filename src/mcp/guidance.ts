@@ -5,7 +5,9 @@
  * Both are generated here so they can never disagree.
  */
 
-const SEARCH = `Call search_context at the START of any debugging, investigation, or "why does X happen" task, and before asking the user to explain background. The answer is often already there from a session in a different repo. Do this without being asked.`;
+const SEARCH = `Call search_context at the START of any debugging, investigation, or "why does X happen" task, and before asking the user to explain background. The answer is often already there from a session in a different repo. Do this without being asked.
+
+Search matches words, not meaning, so don't pass only the user's phrasing. A past note describes the cause in its own words, while the user describes the symptom in theirs. Put both in the query: the user's words, synonyms, the likely technical cause, and names of services, fields or errors involved. For "we're getting duplicate deliveries", search "duplicate deliveries idempotent idempotency retry dedupe webhook". If nothing useful comes back, try once more with different terms before concluding there is nothing.`;
 
 const WHAT_TO_SAVE = `- a discovery about how the system actually behaves
 - an approach that did NOT work (this saves the most time later)
