@@ -92,7 +92,7 @@ npm install -g @shiv_2608/secondmind@latest   # if you installed globally
 rm -rf ~/.npm/_npx                            # if you use npx and have an old copy cached
 ```
 
-Then restart your AI tool. Your notes are upgraded in place the first time the new
+Check with `secondmind --version`, then restart your AI tool. Your notes are upgraded in place the first time the new
 version opens them, and the Claude Code skill refreshes itself.
 
 If you previously let `compact` or `save_session` pick up `ANTHROPIC_API_KEY` or
@@ -184,7 +184,8 @@ You can also steer your assistant explicitly using plain English in your chat:
 | `secondmind list` | Print the most recent notes |
 | `secondmind compact <file>` | Read a whole session transcript and save what mattered |
 | `secondmind forget <id>` | Delete one note |
-| `secondmind stats` | What's stored, and which model reads transcripts |
+| `secondmind stats` | Version, what's stored, and which model reads transcripts |
+| `secondmind --version` | Which version is installed |
 | `secondmind auto [on\|off]` | Whether your assistant saves findings without being asked |
 | `secondmind export [file]` | Every note as JSON, or markdown with `.md` / `-f md` |
 | `secondmind import <file>` | Merge an export in — safe to run more than once |

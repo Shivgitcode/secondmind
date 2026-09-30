@@ -1,4 +1,5 @@
 import { CONFIG_PATH, DB_PATH, loadConfig } from '../config.js';
+import { VERSION } from '../version.js';
 import { detectProject } from '../core/project.js';
 import type { Store } from '../core/store.js';
 import { type NoteType, isNoteType } from '../core/types.js';
@@ -186,7 +187,8 @@ const plural = (count: number, word: string) => `${count} ${word}${count === 1 ?
 export function stats(store: Store): void {
   const { notes, projects } = store.stats();
   const config = loadConfig();
-  console.log(`${plural(notes, 'note')} across ${plural(projects, 'project')}
+  console.log(`secondmind ${VERSION}
+${plural(notes, 'note')} across ${plural(projects, 'project')}
 ${DB_PATH}
 provider order: ${config.providers.join(' → ')}
 cloud providers: ${config.allowRemote ? 'allowed' : 'off (local and your agent only)'}

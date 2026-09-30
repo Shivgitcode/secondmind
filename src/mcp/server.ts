@@ -8,6 +8,7 @@ import { NOTE_TYPES, type NoteType } from '../core/types.js';
 import { type SamplingContext, extract } from '../extract/index.js';
 import { refreshSkill } from '../cli/auto.js';
 import { formatNotes } from '../cli/render.js';
+import { VERSION } from '../version.js';
 import { instructions } from './guidance.js';
 
 const ok = (text: string) => ({ content: [{ type: 'text' as const, text }] });
@@ -17,7 +18,7 @@ const message = (error: unknown) => (error instanceof Error ? error.message : St
 
 export function buildServer(store: Store = Store.open()): McpServer {
   const server = new McpServer(
-    { name: 'secondmind', version: '0.2.0' },
+    { name: 'secondmind', version: VERSION },
     {
       capabilities: { tools: {} },
       enforceStrictCapabilities: true,

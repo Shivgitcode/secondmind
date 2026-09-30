@@ -2,13 +2,14 @@
 import { parseArgs } from 'node:util';
 
 import { DB_PATH } from '../config.js';
+import { VERSION } from '../version.js';
 import { Store } from '../core/store.js';
 import { NOTE_TYPES } from '../core/types.js';
 import * as commands from './commands.js';
 import { bold } from './render.js';
 
 const HELP = `
-${bold('secondmind')} — shared memory for your AI coding sessions
+${bold('secondmind')} ${VERSION} — shared memory for your AI coding sessions
 
   secondmind init                     Set up, and show how to connect your AI tool
   secondmind remember "<what>"        Save something you want to know next time
@@ -23,6 +24,7 @@ ${bold('secondmind')} — shared memory for your AI coding sessions
   secondmind import <file>            Merge an export in; safe to run more than once
   secondmind sync <folder>            Two-way sync through Syncthing, Dropbox, iCloud or git
   secondmind mcp                      Run the server your AI tool talks to
+  secondmind --version                Which version is installed
 
 Options
   -p, --project <name>   Which project (default: the current git repository)
@@ -50,10 +52,15 @@ async function main(): Promise<void> {
       related: { type: 'string', short: 'r' },
       format: { type: 'string', short: 'f' },
       help: { type: 'boolean', short: 'h' },
+      version: { type: 'boolean', short: 'v' },
     },
   });
 
   const [command, ...rest] = positionals;
+  if (values.version || command === 'version') {
+    console.log(VERSION);
+    return;
+  }
   if (!command || values.help || command === 'help') {
     console.log(HELP);
     return;
