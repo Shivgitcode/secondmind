@@ -54,7 +54,7 @@ ${instructions(true)}
 
 ## If the tools are missing
 
-If search_context and remember_context are not available, the secondmind MCP server is not connected. Tell the user once: \`claude mcp add secondmind -- npx -y @shiv_2608/secondmind mcp\`. Don't keep mentioning it.
+If search_context and remember_context are not available, the secondmind MCP server is not connected. Tell the user once: \`claude mcp add secondmind -- npx -y @shiv_2608/secondmind@latest mcp\`. Don't keep mentioning it.
 
 The user can turn automatic saving off with \`secondmind auto off\`.
 `;

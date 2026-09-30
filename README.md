@@ -23,10 +23,10 @@ Run with `npx` (no install needed) or install globally:
 
 ```bash
 # Option A: Run directly with npx
-npx @shiv_2608/secondmind init
+npx @shiv_2608/secondmind@latest init
 
 # Option B: Install globally
-npm install -g @shiv_2608/secondmind
+npm install -g @shiv_2608/secondmind@latest
 secondmind init
 ```
 
@@ -38,7 +38,7 @@ Pick the snippet for your editor:
 
 #### Claude Code
 ```bash
-claude mcp add secondmind -- npx -y @shiv_2608/secondmind mcp
+claude mcp add secondmind -- npx -y @shiv_2608/secondmind@latest mcp
 # or if installed globally:
 claude mcp add secondmind -- secondmind mcp
 ```
@@ -49,7 +49,7 @@ claude mcp add secondmind -- secondmind mcp
   "mcpServers": {
     "secondmind": {
       "command": "npx",
-      "args": ["-y", "@shiv_2608/secondmind", "mcp"]
+      "args": ["-y", "@shiv_2608/secondmind@latest", "mcp"]
     }
   }
 }
@@ -61,7 +61,7 @@ claude mcp add secondmind -- secondmind mcp
   "mcpServers": {
     "secondmind": {
       "command": "npx",
-      "args": ["-y", "@shiv_2608/secondmind", "mcp"]
+      "args": ["-y", "@shiv_2608/secondmind@latest", "mcp"]
     }
   }
 }
@@ -74,13 +74,30 @@ Add to your extension's MCP configuration:
   "mcpServers": {
     "secondmind": {
       "command": "npx",
-      "args": ["-y", "@shiv_2608/secondmind", "mcp"]
+      "args": ["-y", "@shiv_2608/secondmind@latest", "mcp"]
     }
   }
 }
 ```
 
 That's it. No account, no API key, nothing to run. Now work normally.
+
+> **Why `@latest`?** `npx` caches packages, so without it your AI tool can keep
+> running an old copy long after a new version is out.
+
+### Updating
+
+```bash
+npm install -g @shiv_2608/secondmind@latest   # if you installed globally
+rm -rf ~/.npm/_npx                            # if you use npx and have an old copy cached
+```
+
+Then restart your AI tool. Your notes are upgraded in place the first time the new
+version opens them, and the Claude Code skill refreshes itself.
+
+If you previously let `compact` or `save_session` pick up `ANTHROPIC_API_KEY` or
+`OPENAI_API_KEY` on its own: since v0.2.0 a key alone isn't enough, so set
+`SECONDMIND_PROVIDER` (see [Capturing whole sessions](#capturing-whole-sessions)).
 
 Want to try it from your terminal without any AI tool involved?
 
@@ -244,18 +261,36 @@ are allowed.
 
 ### Doing it automatically
 
-Ask your assistant to save the session — it has a `save_session` tool. Or run it
-on every session end. In Claude Code, add to `~/.claude/settings.json`:
+Ask your assistant to save the session — it has a `save_session` tool. Or, in
+Claude Code, run it every time a session ends by adding this to
+`~/.claude/settings.json`:
 
 ```json
 {
   "hooks": {
     "SessionEnd": [
-      { "hooks": [{ "type": "command", "command": "secondmind compact \"$(jq -r .transcript_path)\"; secondmind sync ~/Sync/secondmind" }] }
+      { "hooks": [{ "type": "command", "command": "secondmind compact \"$(jq -r .transcript_path)\"" }] }
     ]
   }
 }
 ```
+
+Before relying on it, know what it needs:
+
+- **A model you've chosen.** The hook runs outside your coding session, so it can't
+  borrow your agent's model. It needs either a local model (`SECONDMIND_BASE_URL`)
+  or a cloud provider you've named (`SECONDMIND_PROVIDER`), set where the hook can
+  see it — your shell profile, or an `"env"` block in the same `settings.json`.
+  With neither, the hook does nothing.
+- **`secondmind` on your PATH** (`npm install -g`) and **`jq`** installed.
+- **Claude Code.** Other tools don't have an equivalent hook yet; there, findings are
+  saved by your assistant during the session.
+
+Check it works by running the same command on a real transcript:
+`secondmind compact ~/.claude/projects/<project>/<session>.jsonl`. If it prints
+"No way to read the transcript", the hook would fail the same way.
+
+Using sync? Add `; secondmind sync ~/Sync/secondmind` to the end of the command.
 
 ---
 
