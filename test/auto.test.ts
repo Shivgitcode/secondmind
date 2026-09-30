@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
@@ -9,7 +9,7 @@ import { test } from 'node:test';
 const scratch = mkdtempSync(join(tmpdir(), 'secondmind-'));
 process.env['SECONDMIND_HOME'] = join(scratch, 'home');
 const { loadConfig } = await import('../src/config.js');
-const { setAutoSave } = await import('../src/cli/auto.js');
+const { refreshSkill, setAutoSave } = await import('../src/cli/auto.js');
 const { instructions, skill } = await import('../src/mcp/guidance.js');
 
 test('automatic saving is on unless you turn it off', () => {
@@ -54,4 +54,27 @@ test('agents are told to widen their searches, whether or not auto-save is on', 
     assert.match(text, /matches words, not meaning/);
     assert.match(text, /synonyms/);
   }
+});
+
+test('project knowledge is saved, general knowledge is not', () => {
+  for (const text of [instructions(true), instructions(false)]) {
+    assert.match(text, /plan, feature idea or roadmap item/);
+    assert.match(text, /requirement, constraint or convention/);
+    assert.match(text, /Do NOT save general knowledge/);
+  }
+  assert.match(skill(), /^description: .*planning or design discussion.*Not for general-knowledge questions/m);
+});
+
+test('an installed skill is brought up to date, a missing one is left missing', () => {
+  const claude = join(scratch, 'claude-refresh');
+  const path = join(claude, 'skills', 'secondmind', 'SKILL.md');
+  mkdirSync(join(claude, 'skills', 'secondmind'), { recursive: true });
+  writeFileSync(path, 'old guidance');
+  assert.equal(refreshSkill(path), true);
+  assert.equal(readFileSync(path, 'utf8'), skill());
+  assert.equal(refreshSkill(path), false, 'nothing to do when it is current');
+
+  const absent = join(scratch, 'claude-none', 'skills', 'secondmind', 'SKILL.md');
+  assert.equal(refreshSkill(absent), false);
+  assert.ok(!existsSync(absent));
 });

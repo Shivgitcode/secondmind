@@ -6,6 +6,7 @@ import { Store } from '../core/store.js';
 import { detectProject } from '../core/project.js';
 import { NOTE_TYPES, type NoteType } from '../core/types.js';
 import { type SamplingContext, extract } from '../extract/index.js';
+import { refreshSkill } from '../cli/auto.js';
 import { formatNotes } from '../cli/render.js';
 import { instructions } from './guidance.js';
 
@@ -64,8 +65,9 @@ export function buildServer(store: Store = Store.open()): McpServer {
     'remember_context',
     {
       description:
-        'Save something worth knowing in a future session: a discovery, a decision, a dead end, or an open question. '
-        + 'Save the finding, not the conversation. Include other affected services in related_projects.',
+        'Save project knowledge worth having in a future session: a discovery, a dead end, a decision, a plan or idea, '
+        + 'a requirement, or an open question. Not general knowledge. Save the finding, not the conversation. '
+        + 'Include other affected services in related_projects.',
       inputSchema: fromJsonSchema<{
         content: string; type?: NoteType; project?: string;
         keywords?: string[]; files?: string[]; related_projects?: string[]; importance?: number;
@@ -154,6 +156,7 @@ export function buildServer(store: Store = Store.open()): McpServer {
  */
 export function runStdio(): Promise<void> {
   const store = Store.open();
+  refreshSkill();
   const handle = serveStdio(() => buildServer(store));
 
   return new Promise<void>((resolve) => {

@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 
@@ -25,6 +25,21 @@ export function installSkill(path = claudeSkillPath()): boolean {
   mkdirSync(dirname(path), { recursive: true });
   writePrivate(path, skill());
   return true;
+}
+
+/**
+ * Keep an installed skill in step with this version's guidance, so upgrading
+ * secondmind is enough — no need to rerun init. Never installs one that isn't
+ * there: a missing skill means the user turned it off or never had Claude Code.
+ */
+export function refreshSkill(path = claudeSkillPath()): boolean {
+  try {
+    if (!existsSync(path) || readFileSync(path, 'utf8') === skill()) return false;
+    writePrivate(path, skill());
+    return true;
+  } catch {
+    return false; // a stale skill is not worth failing the server over
+  }
 }
 
 export function removeSkill(path = claudeSkillPath()): void {
