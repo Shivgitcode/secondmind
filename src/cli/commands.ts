@@ -29,7 +29,7 @@ export function init(): void {
 
 ${bold('Connect your AI coding tool')} — pick the line for the one you use:
 
-  Claude Code    claude mcp add secondmind -- secondmind mcp
+  Claude Code    claude mcp add -s user secondmind -- secondmind mcp
 
   Anything else  add this to its MCP settings file:
 

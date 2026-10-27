@@ -67,7 +67,7 @@ export function buildServer(store: Store = Store.open()): McpServer {
     {
       description:
         'Save project knowledge worth having in a future session: a discovery, a dead end, a decision, a plan or idea, '
-        + 'a requirement, or an open question. Not general knowledge. Save the finding, not the conversation. '
+        + 'a requirement, or an open question. Not general knowledge, unless the user asks you to save it. Save the finding, not the conversation. '
         + 'Include other affected services in related_projects.',
       inputSchema: fromJsonSchema<{
         content: string; type?: NoteType; project?: string;

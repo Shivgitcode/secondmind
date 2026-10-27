@@ -62,7 +62,9 @@ test('project knowledge is saved, general knowledge is not', () => {
     assert.match(text, /requirement, constraint or convention/);
     assert.match(text, /Do NOT save general knowledge/);
   }
-  assert.match(skill(), /^description: .*planning or design discussion.*Not for general-knowledge questions/m);
+  assert.match(skill(), /^description: .*planning or design discussion.*"save this".*Not for answering general-knowledge questions/m);
+  assert.match(instructions(true), /explicitly asks you to save or remember something.*save it with remember_context, whatever the topic/);
+  assert.match(skill(), /claude mcp add -s user secondmind/);
 });
 
 test('an installed skill is brought up to date, a missing one is left missing', () => {

@@ -21,6 +21,8 @@ This applies in any kind of conversation — planning, design discussion, code r
 
 Do NOT save general knowledge that isn't specific to the user's work: explanations of concepts, languages, libraries or tools ("what is RAG", "how do React hooks work") belong in your answer, not in their memory. If a general discussion turns into a conclusion about their project ("so we should add semantic search to secondmind"), save that conclusion.
 
+This rule is only for saving on your own. When the user explicitly asks you to save or remember something ("save this", "remember this", "use secondmind"), save it with remember_context, whatever the topic, and don't tell them secondmind is meant for something else. Put general notes that belong to no repository under the project "general-notes".
+
 Save the finding, not the conversation, and write it so it stands alone — "it was the serializer" is useless later; name the service. Always fill in keywords (other words someone might search for, including synonyms for the concept) and related_projects (other services affected). A note saved without keywords may never be found again.`;
 
 const AUTO_ON = `Call remember_context as soon as you confirm something worth knowing months from now, without waiting to be asked:
@@ -45,7 +47,7 @@ ${autoSave ? AUTO_ON : AUTO_OFF}`;
 export function skill(): string {
   return `---
 name: secondmind
-description: The user's memory of past coding sessions across all their repos. Use at the start of any debugging, investigation, planning or design discussion about a project, or when the user refers to earlier work, to check what past sessions found. Also use whenever a project-level discovery, dead end, decision, plan or requirement is settled, to save it with remember_context without being asked. Not for general-knowledge questions. Needs the secondmind MCP server.
+description: The user's memory of past coding sessions across all their repos. Use at the start of any debugging, investigation, planning or design discussion about a project, or when the user refers to earlier work, to check what past sessions found. Also use whenever a project-level discovery, dead end, decision, plan or requirement is settled, to save it with remember_context without being asked. When the user says "save this", "remember this" or "use secondmind", use this skill to save it, whatever the topic. Not for answering general-knowledge questions. Needs the secondmind MCP server.
 ---
 
 # secondmind
@@ -54,7 +56,7 @@ ${instructions(true)}
 
 ## If the tools are missing
 
-If search_context and remember_context are not available, the secondmind MCP server is not connected. Tell the user once: \`claude mcp add secondmind -- npx -y @shiv_2608/secondmind@latest mcp\`. Don't keep mentioning it.
+If search_context and remember_context are not available, the secondmind MCP server is not connected. Tell the user once: \`claude mcp add -s user secondmind -- npx -y @shiv_2608/secondmind@latest mcp\`. (-s user connects it in every folder, not just this one), then restart Claude Code. Don't keep mentioning it. Don't save the note somewhere else instead, such as a doc or a file, unless the user asks.
 
 The user can turn automatic saving off with \`secondmind auto off\`.
 `;

@@ -38,10 +38,12 @@ Pick the snippet for your editor:
 
 #### Claude Code
 ```bash
-claude mcp add secondmind -- npx -y @shiv_2608/secondmind@latest mcp
+claude mcp add -s user secondmind -- npx -y @shiv_2608/secondmind@latest mcp
 # or if installed globally:
-claude mcp add secondmind -- secondmind mcp
+claude mcp add -s user secondmind -- secondmind mcp
 ```
+
+Keep `-s user`. Without it, Claude Code connects secondmind only in the folder you ran the command in.
 
 #### Cursor (`~/.cursor/mcp.json` or Project Settings > MCP)
 ```json
