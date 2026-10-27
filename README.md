@@ -15,6 +15,8 @@ tried and ruled out.
 secondmind keeps the useful parts. Your assistant can look them up later, even in
 a different project, even in a different AI tool.
 
+![Saving a note in one repo with "save this", then recalling it from a different repo](https://raw.githubusercontent.com/shivgitcode/secondmind/main/docs/demo.gif)
+
 ---
 
 ## Quick start
